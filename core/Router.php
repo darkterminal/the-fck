@@ -76,8 +76,8 @@ class Router
     protected function instantiateController($controllerName)
     {
         $composerFile = Application::$ROOT_DIR . DIRECTORY_SEPARATOR . 'composer.json';
-        
-        if (file_exists($composerFile)) {
+
+        if (!file_exists($composerFile)) {
             throw new Exception("You don't have composer.json!", 1);
         }
 
