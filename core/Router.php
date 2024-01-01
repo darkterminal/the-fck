@@ -2,6 +2,7 @@
 
 namespace Fckin\core;
 
+use Exception;
 use Fckin\core\exceptions\NotFoundException;
 
 class Router
@@ -64,9 +65,8 @@ class Router
         $controller = $this->instantiateController($controllerName);
         Application::$app->controller = $controller;
         Application::$app->controller->action = $method;
-        
-        foreach (Application::$app->controller->getMiddleware() as $middleware)
-        {
+
+        foreach (Application::$app->controller->getMiddleware() as $middleware) {
             $middleware->execute();
         }
 
@@ -75,7 +75,14 @@ class Router
 
     protected function instantiateController($controllerName)
     {
-        $controllerClass = '\Fckin\controllers\\' . $controllerName;
+        $composerFile = Application::$ROOT_DIR . DIRECTORY_SEPARATOR . 'composer.json';
+        
+        if (file_exists($composerFile)) {
+            throw new Exception("You don't have composer.json!", 1);
+        }
+
+        $composer = json_decode(file_get_contents($composerFile), true);
+        $controllerClass = '\\' . key($composer['autoload']['psr-4']) . 'controllers\\' . $controllerName;
         return new $controllerClass();
     }
 }
