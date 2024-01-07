@@ -9,9 +9,9 @@ class Radio
     public Model $model;
     public string $name;
     public bool $checked;
-    public string $label;
+    public string|null $label;
 
-    public function __construct(Model $model, $label = null, string $name, bool $checked = false)
+    public function __construct(Model $model, string $name, bool $checked = false, string|null $label = null)
     {
         $this->model = $model;
         $this->name = $name;
@@ -25,12 +25,12 @@ class Radio
             '
             <div class="form-control">
                 <label class="label cursor-pointer">
-                    <span class="label-text">%s</span> 
+                    <span class="label-text">%s</span>
                     <input type="radio" name="%s" value="%s" class="radio %s" %s />
                 </label>
             </div>
         ',
-            $this->label ?? text_alt_formatter($this->name),
+            text_alt_formatter($this->label ?? $this->name),
             $this->name,
             $this->model->{$this->name},
             $this->model->hasError($this->name) ? 'radio-error' : '',
