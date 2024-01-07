@@ -8,12 +8,14 @@ class FileInput
 {
     public Model $model;
     public string $name;
-    public string $classes;
+    public string|null $label;
+    public string|array $classes;
 
-    public function __construct(Model $model, string $name, string $classes = '')
+    public function __construct(Model $model, string $name, string|null $label = null, string|array $classes = '')
     {
         $this->model = $model;
         $this->name = $name;
+        $this->label = $label;
         $this->classes = $classes;
     }
 
@@ -25,16 +27,16 @@ class FileInput
                 <div class="label">
                     <span class="label-text">%s</span>
                 </div>
-                <input type="file" name="%s" value="%s" class="file-input file-input-bordered w-full %s %s" />
+                <input type="file" name="%s" value="%s" class="%s %s" />
                 <div class="label">
                     <span class="label-text-alt">%s</span>
                 </div>
             </label>
         ',
-            text_alt_formatter($this->name),
+            text_alt_formatter($this->label ?? $this->name),
             $this->name,
             $this->model->{$this->name},
-            $this->classes,
+            \twMerge('file-input file-input-bordered w-full'. $this->classes),
             $this->model->hasError($this->name) ? 'checkbox-error' : '',
             $this->model->getFirstError($this->name)
         );
