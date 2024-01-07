@@ -5,13 +5,12 @@ namespace Fckin\core;
 class Session
 {
     protected const FLASH_KEY = 'flash_messages';
-    
+
     public function __construct()
     {
         session_start();
         $flashMessages = $_SESSION[self::FLASH_KEY] ?? [];
         foreach ($flashMessages as &$flashMessage) {
-            // Mark to be removed
             $flashMessage['remove'] = true;
         }
         $_SESSION[self::FLASH_KEY] = $flashMessages;
