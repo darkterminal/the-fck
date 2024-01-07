@@ -74,16 +74,6 @@ function display_info()
     die();
 }
 
-function dump($data, $exit = false)
-{
-    echo "<pre>";
-    \var_dump($data);
-    echo "</pre>";
-    if ($exit) {
-        die();
-    }
-}
-
 function text_alt_formatter($input)
 {
     $snakeCase = strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $input));
