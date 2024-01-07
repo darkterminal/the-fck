@@ -9,15 +9,17 @@ class Range
 {
     public Model $model;
     public string $name;
+    public string|null $label;
     public int $min;
     public int $max;
     public int $step;
-    public string $classes;
+    public string|array $classes;
 
-    public function __construct(Model $model, string $name, int $min = 0, int $max = 100, int $step = 0, string $classes = '')
+    public function __construct(Model $model, string $name, string|null $label = null, int $min = 0, int $max = 100, int $step = 1, string|array $classes = '')
     {
         $this->model = $model;
         $this->name = $name;
+        $this->label = $label;
         $this->min = $min;
         $this->max = $max;
         $this->step = $step;
@@ -36,7 +38,7 @@ class Range
                 %s
             </label>
         ',
-            text_alt_formatter($this->name),
+            text_alt_formatter($this->label ?? $this->name),
             $this->name,
             $this->min,
             $this->max,
