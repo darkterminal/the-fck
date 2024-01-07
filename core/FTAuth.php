@@ -39,7 +39,6 @@ class FTAuth
         if ($base64UrlSignature === $base64UrlComputedSignature) {
             $payload = json_decode(base64_decode($base64UrlPayload), true);
 
-            // Check token expiration
             if (isset($payload['exp']) && $payload['exp'] >= time()) {
                 return $payload;
             }
