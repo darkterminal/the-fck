@@ -2,6 +2,31 @@
 
 use Fckin\core\Application;
 use Fckin\core\FTAuth;
+use Symfony\Component\VarDumper\VarDumper;
+
+function thefck(...$vars)
+{
+	static $first = true;
+	if ($first) {
+		$first = false;
+		echo '<html><body>';
+	}
+	foreach ($vars as $var) {
+		VarDumper::dump($var);
+	}
+}
+
+function twMerge(string $baseClass, string|array $additionalClasses = [])
+{
+    $baseClasses = explode(' ', $baseClass);
+    $additionalClasses = is_string($additionalClasses) ? explode(' ', $additionalClasses) : $additionalClasses;
+
+    $mergedClasses = array_unique(array_merge($baseClasses, $additionalClasses));
+
+    $filteredClasses = array_filter($mergedClasses);
+
+    return implode(' ', $filteredClasses);
+}
 
 function isGuest()
 {
@@ -61,13 +86,10 @@ function dump($data, $exit = false)
 
 function text_alt_formatter($input)
 {
-    // Convert camelCase or PascalCase to snake_case
     $snakeCase = strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $input));
 
-    // Explode snake_case into an array
     $exploded = explode('_', $snakeCase);
 
-    // Capitalize the first letter of each word
     $capitalizedWords = array_map('ucfirst', $exploded);
 
     return implode(' ', $capitalizedWords);
