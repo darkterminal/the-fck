@@ -5,7 +5,6 @@ namespace Fckin\core;
 class View
 {
     public string $title = '';
-    private array $data = [];
 
     public function renderView($view, $params = [])
     {
