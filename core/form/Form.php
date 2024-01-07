@@ -30,43 +30,39 @@ class Form
         return $attributeString;
     }
 
-    /**
-     * Create Input Field
-     *
-     * @param  Model $model the fck core model that load the value of the input
-     * @param  string $type set the input field type
-     * @param  string $attribute set the input field name and attribute
-     * @param  string $classes add extra Tailwind CSS classes
-     * @return string HTML Input Field
-     */
-    public static function input(Model $model, string $type, string $attribute, string $classes = '')
+    public static function input(Model $model, string $type, string $name, string|null $label = null, bool $useLabel = true, string|null $placeholder = null, string|array $classes = '')
     {
-        echo new Input($model, $type, $attribute, $classes);
+        echo new Input($model, $type, $name, $label, $useLabel, $placeholder, $classes);
     }
 
-    public static function textarea(Model $model, string $attribute, string $classes = '')
+    public static function textarea(Model $model, string $name, string|null $label = null, bool $useLabel = true, string|null $placeholder = null, string $classes = '')
     {
-        echo new Textarea($model, $attribute, $classes);
+        echo new Textarea($model, $name, $label, $useLabel, $placeholder, $classes);
     }
 
-    public static function checkbox(Model $model, string $attribute, string $label = null, bool $checked = false)
+    public static function checkbox(Model $model, string $name, mixed $value, bool $checked = false, string|null $label = null, bool $useLabel = true)
     {
-        echo new Checkbox($model, $label, $attribute, $checked);
+        echo new Checkbox($model, $name, $value, $checked, $label, $useLabel);
     }
 
-    public static function radio(Model $model, string $attribute, string $label = null, bool $checked = false)
+    public static function select(Model $model, string $name, array $options = [], string|null $label = null, string|array $classes = '')
     {
-        echo new Radio($model, $label, $attribute, $checked);
+        echo new Select($model, $name, $options, $label, $classes);
     }
 
-    public static function fileinput(Model $model, string $attribute, string $classes = '')
+    public static function radio(Model $model, string $name, bool $checked = false, string|null $label = null)
     {
-        echo new FileInput($model, $attribute, $classes);
+        echo new Radio($model, $name, $checked, $label);
     }
 
-    public static function range(Model $model, string $name, int $min, int $max, int $step = 0, string $classes = '')
+    public static function fileinput(Model $model, string $name, string $classes = '')
     {
-        echo new Range($model, $name, $min, $max, $step, $classes);
+        echo new FileInput($model, $name, $classes);
+    }
+
+    public static function range(Model $model, string $name, string|null $label = null, int $min = 0, int $max = 100, int $step = 1, string $classes = '')
+    {
+        echo new Range($model, $name, $label, $min, $max, $step, $classes);
     }
 
     public static function rating(Model $model, string $name, int $stars, string $ratingType = 'star', string $classes = '')
@@ -74,15 +70,8 @@ class Form
         echo new Rating($model, $name, $stars, $ratingType, $classes);
     }
 
-    /**
-     * Create Submit Button
-     *
-     * @param  string $text display text button 
-     * @param  string $class string classes using Tailwind CSS
-     * @return string HTML Submit Button
-     */
     public static function submit(string $text, string $class = 'btn btn-outline btn-block my-3')
     {
-        echo sprintf('<button class="%s" type="submit">%s</button>', $class, $text);
+        echo sprintf('<button class="%s" type="submit">%s</button>', \twMerge('btn btn-outline btn-block my-3', $class), $text);
     }
 }
