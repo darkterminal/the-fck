@@ -6,14 +6,14 @@ use Symfony\Component\VarDumper\VarDumper;
 
 function thefck(...$vars)
 {
-	static $first = true;
-	if ($first) {
-		$first = false;
-		echo '<html><body>';
-	}
-	foreach ($vars as $var) {
-		VarDumper::dump($var);
-	}
+    static $first = true;
+    if ($first) {
+        $first = false;
+        echo '<html><body>';
+    }
+    foreach ($vars as $var) {
+        VarDumper::dump($var);
+    }
 }
 
 function twMerge(string $baseClass, string|array $additionalClasses = [])
@@ -58,7 +58,7 @@ function addToast($key, $message)
 
 function toast($key)
 {
-    if (Application::$app->session->getFlashMessage($key)):
+    if (Application::$app->session->getFlashMessage($key)) :
         return '<div role="alert" class="alert alert-' . $key . ' w-[30rem] mx-auto">
             <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -110,4 +110,29 @@ function env($key, $default = null)
     } else {
         return php_sapi_name() === 'cli' ? (getenv($key) ?? $default) : ($_ENV[$key] ?? $default);
     }
+}
+
+function config($key)
+{
+    $configPath = Application::$ROOT_DIR . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'app.php';
+
+    if (!file_exists($configPath)) {
+        return $key . " doesn't exist!";
+    }
+
+    require $configPath;
+
+    $value = $config;
+
+    $keys = explode('.', $key);
+
+    foreach ($keys as $nestedKey) {
+        if (isset($value[$nestedKey])) {
+            $value = $value[$nestedKey];
+        } else {
+            return null;
+        }
+    }
+
+    return $value;
 }
