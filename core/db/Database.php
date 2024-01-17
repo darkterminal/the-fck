@@ -11,14 +11,34 @@ class Database
 
     public function __construct(array $config)
     {
-        $host       = $config['host'] ?? '';
-        $port       = $config['port'] ?? '';
-        $dbname     = $config['dbname'] ?? '';
-        $user       = $config['user'] ?? '';
-        $password   = $config['password'] ?? '';
+        try {
+            $host       = $config['host'] ?? '';
+            $port       = $config['port'] ?? '';
+            $dbname     = $config['dbname'] ?? '';
+            $user       = $config['user'] ?? '';
+            $password   = $config['password'] ?? '';
+            $type       = $config['type'] ?? 'mysql';
 
-        $this->pdo = new PDO("mysql:host=$host;port=$port;dbname=$dbname", $user, $password);
-        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            switch ($type) {
+                case 'mysql':
+                    $this->pdo = new PDO("mysql:host=$host;port=$port;dbname=$dbname", $user, $password);
+                    break;
+                case 'sqlite':
+                    $this->pdo = new PDO("sqlite:$dbname", $user, $password);
+                    break;
+                case 'postgresql':
+                    $this->pdo = new PDO("pgsql:host=$host;port=$port;dbname=$dbname", $user, $password);
+                    break;
+            }
+
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch (\Throwable $e) {
+            Application::$app->response->setStatusCode($e->getCode());
+            echo Application::$app->view->renderView('_error', [
+                'exception' => $e,
+                'database' => true
+            ]);
+        }
     }
 
     public function applyMigrations()
@@ -28,12 +48,12 @@ class Database
 
         $newMigrations = [];
 
-        $files = scandir(Application::$ROOT_DIR . DIRECTORY_SEPARATOR .'migrations');
+        $files = scandir(Application::$ROOT_DIR . DIRECTORY_SEPARATOR . 'migrations');
         $toApplyMigrations = array_diff($files, $appliedMigrations);
-        
+
         foreach ($toApplyMigrations as $migration) {
-            if($migration === '.' || $migration === '..') continue;
-            require_once Application::$ROOT_DIR . DIRECTORY_SEPARATOR .'migrations'. DIRECTORY_SEPARATOR .$migration;
+            if ($migration === '.' || $migration === '..') continue;
+            require_once Application::$ROOT_DIR . DIRECTORY_SEPARATOR . 'migrations' . DIRECTORY_SEPARATOR . $migration;
             $className = pathinfo($migration, PATHINFO_FILENAME);
             $instance = new $className();
             $this->log("Applying migration $migration");
@@ -54,10 +74,10 @@ class Database
         $appliedMigrations = array_reverse($this->getAppliedMigrations(), true);
 
         $newMigrations = [];
-        
+
         foreach ($appliedMigrations as $migration) {
-            if($migration === '.' || $migration === '..') continue;
-            require_once Application::$ROOT_DIR . DIRECTORY_SEPARATOR .'migrations'. DIRECTORY_SEPARATOR .$migration;
+            if ($migration === '.' || $migration === '..') continue;
+            require_once Application::$ROOT_DIR . DIRECTORY_SEPARATOR . 'migrations' . DIRECTORY_SEPARATOR . $migration;
             $className = pathinfo($migration, PATHINFO_FILENAME);
             $instance = new $className();
             $this->log("Dropping migration $migration");
@@ -93,7 +113,7 @@ class Database
 
     public function saveMigrations(array $migrations)
     {
-        $query = implode(',', array_map(fn($m) => "('$m')", $migrations));
+        $query = implode(',', array_map(fn ($m) => "('$m')", $migrations));
         $statement = $this->pdo->prepare("INSERT INTO migrations (migration) VALUES $query");
         $statement->execute();
     }
@@ -108,7 +128,6 @@ class Database
 
     protected function log($message)
     {
-        echo '['.date('Y-m-d H:i:s').'] - ' . $message . colorize('OK', 'green') .PHP_EOL;
+        echo '[' . date('Y-m-d H:i:s') . '] - ' . $message . colorize('OK', 'green') . PHP_EOL;
     }
-
 }
