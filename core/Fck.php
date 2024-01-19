@@ -26,8 +26,8 @@ final class Fck
 
         $dotenv = Dotenv::createImmutable($this->appDir);
         $dotenv->load();
-        
-        require_once $this->appDir . '/config/app.php';
+
+        $config = require_once $this->appDir . '/config/app.php';
 
         $app = new Application($this->appDir, $config);
 

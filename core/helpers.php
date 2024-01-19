@@ -112,15 +112,15 @@ function env($key, $default = null)
     }
 }
 
-function config($key)
+function config($configFile, $key)
 {
-    $configPath = Application::$ROOT_DIR . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'app.php';
+    $configPath = Application::$ROOT_DIR . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . $configFile . '.php';
 
     if (!file_exists($configPath)) {
         return $key . " doesn't exist!";
     }
 
-    require $configPath;
+    $config = require $configPath;
 
     $value = $config;
 
