@@ -47,10 +47,10 @@ version_type=$1
 
 current_version=$(get_current_version)
 
-new_version=$(increment_version "$current_version" "$version_type")
+version_message=$(increment_version "$current_version" "$version_type")
 
-git tag -a -m "$new_version"
+new_version=$(echo "$version_message" | grep -oP 'v\d+\.\d+\.\d+')
+
+git tag -a $new_version -m "$version_message"
 
 git push origin --tags
-
-exit 0

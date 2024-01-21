@@ -18,9 +18,9 @@
         }
     ],
     "scripts": {
-        "craete-patch-version": ["./gitversion patch"],
-        "craete-minor-version": ["./gitversion minor"],
-        "craete-major-version": ["./gitversion major"]
+        "create-patch-version": ["./gitversion patch"],
+        "create-minor-version": ["./gitversion minor"],
+        "create-major-version": ["./gitversion major"]
     },
     "require": {
         "vlucas/phpdotenv": "^5.6",
