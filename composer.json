@@ -17,6 +17,11 @@
             "email": "d.darkterminal@gmail.com"
         }
     ],
+    "scripts": {
+        "craete-patch-version": ["./gitversion patch"],
+        "craete-minor-version": ["./gitversion minor"],
+        "craete-major-version": ["./gitversion major"]
+    },
     "require": {
         "vlucas/phpdotenv": "^5.6",
         "voku/anti-xss": "^4.1"

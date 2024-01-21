@@ -1,0 +1,56 @@
+#!/bin/bash
+
+get_current_version() {
+    latest_tag=$(git describe --abbrev=0 --tags 2>/dev/null)
+    if [[ -z $latest_tag ]]; then
+        echo "v1.0.0"
+    else
+        echo $latest_tag
+    fi
+}
+
+increment_version() {
+    current_version=$1
+    version_type=$2
+    IFS='.' read -r -a version_parts <<< "$current_version"
+    major=${version_parts[0]:1}
+    minor=${version_parts[1]}
+    patch=${version_parts[2]}
+    message="Release "
+
+    case $version_type in
+        major)
+            ((major++))
+            minor=0
+            patch=0
+            message="$message new major version"
+            ;;
+        minor)
+            ((minor++))
+            patch=0
+            message="$message new minor version"
+            ;;
+        patch)
+            ((patch++))
+            message="$message new patch version"
+            ;;
+        *)
+            echo "Invalid version type. Use 'major', 'minor', or 'patch'."
+            exit 1
+            ;;
+    esac
+
+    echo "$message v$major.$minor.$patch"
+}
+
+version_type=$1
+
+current_version=$(get_current_version)
+
+new_version=$(increment_version "$current_version" "$version_type")
+
+git tag -a -m "$new_version"
+
+git push origin --tags
+
+exit 0
