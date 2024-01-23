@@ -136,3 +136,35 @@ function config($configFile, $key)
 
     return $value;
 }
+
+function base_url(string $path = ''): string
+{
+    // Get the protocol (HTTP or HTTPS)
+    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+
+    // Get the host (domain) name
+    $host = $_SERVER['HTTP_HOST'];
+
+    // Get the base path (without the script name)
+    $basePath = dirname($_SERVER['SCRIPT_NAME']);
+
+    // Combine the components to create the base URL
+    $baseUrl = "$protocol://$host$basePath";
+
+    // Append the provided path, if any
+    if ($path !== '') {
+        $baseUrl .= '/' . ltrim($path, '/');
+    }
+
+    return $baseUrl;
+}
+
+function getParams(): array
+{
+    return Application::$app->request->getParams();
+}
+
+function getParam(string $key): mixed
+{
+    return Application::$app->request->getParam($key);
+}
