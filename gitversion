@@ -16,7 +16,7 @@ increment_version() {
     major=${version_parts[0]:1}
     minor=${version_parts[1]}
     patch=${version_parts[2]}
-    message="Release "
+    message="The fck. Release "
 
     case $version_type in
         major)
@@ -54,3 +54,5 @@ new_version=$(echo "$version_message" | grep -oP 'v\d+\.\d+\.\d+')
 git tag -a $new_version -m "$version_message"
 
 git push origin --tags
+
+gh release create
