@@ -20,49 +20,89 @@ class Router
 
     public function get($path, $callback)
     {
-        $this->routes['get'][$path] = $callback;
+        $this->addRoute('get', $path, $callback);
     }
 
     public function post($path, $callback)
     {
-        $this->routes['post'][$path] = $callback;
+        $this->addRoute('post', $path, $callback);
+    }
+
+    public function put($path, $callback)
+    {
+        $this->addRoute('put', $path, $callback);
+    }
+
+    public function delete($path, $callback)
+    {
+        $this->addRoute('delete', $path, $callback);
+    }
+
+    protected function addRoute($method, $path, $callback)
+    {
+        $this->routes[$method][$path] = $callback;
     }
 
     public function resolve()
     {
-        $path = strtolower($this->request->getPath());
         $method = strtolower($this->request->method());
-        $callback = $this->routes[$method][$path] ?? false;
 
-        if ($callback === false) {
-            return $this->notFoundResponse();
+        foreach ($this->routes[$method] as $route => $callback) {
+            $params = $this->getParams($route);
+
+            if ($params !== false) {
+                return $this->handleCallback($callback, $params);
+            }
         }
 
-        if (is_string($callback)) {
-            return $this->handleStringCallback($callback);
-        }
-
-        return call_user_func($callback, $this->request, $this->response);
+        return $this->notFoundResponse();
     }
 
-    protected function notFoundResponse()
+    protected function getParams($route)
     {
-        $this->response->setStatusCode(404);
-        throw new NotFoundException();
-    }
+        $path = $this->request->getPath();
+        $routeSegments = explode('/', trim($route, '/'));
+        $pathSegments = explode('/', trim($path, '/'));
 
-    protected function handleStringCallback($callback)
-    {
-        if (str_contains($callback, '@')) {
-            return $this->callControllerMethod($callback);
+        foreach ($routeSegments as $key => $segment) {
+            if (preg_match('/^\{(.+?)\}$/', $segment, $matches)) {
+                if (isset($pathSegments[$key])) {
+                    $this->request->params[$matches[1]] = $pathSegments[$key];
+                } else {
+                    return false;
+                }
+            } elseif (preg_match('/^\[{(.+?)\}\]$/', $segment, $matches)) {
+                if (isset($pathSegments[$key])) {
+                    $this->request->params[$matches[1]] = $pathSegments[$key];
+                } else {
+                    $this->request->params[$matches[1]] = null;
+                }
+            } else {
+                if (!isset($pathSegments[$key]) || $pathSegments[$key] !== $segment) {
+                    return false;
+                }
+            }
         }
+
+        return $this->request->params;
     }
 
-    protected function callControllerMethod($callback)
+    protected function handleCallback($callback, $params = [])
+    {
+        if (is_callable($callback)) {
+            return call_user_func_array($callback, array_merge([$params, $this->request, $this->response]));
+        } elseif (is_string($callback)) {
+            return $this->callControllerMethod($callback, $params);
+        }
+
+        return null;
+    }
+
+    protected function callControllerMethod($callback, $params = [])
     {
         [$controllerName, $method] = explode('@', $callback);
-
         $controller = $this->instantiateController($controllerName);
+
         Application::$app->controller = $controller;
         Application::$app->controller->action = $method;
 
@@ -83,6 +123,17 @@ class Router
 
         $composer = json_decode(file_get_contents($composerFile), true);
         $controllerClass = '\\' . key($composer['autoload']['psr-4']) . 'controllers\\' . $controllerName;
+
+        if (!class_exists($controllerClass)) {
+            throw new Exception("Controller class $controllerClass not found", 1);
+        }
+
         return new $controllerClass();
+    }
+
+    protected function notFoundResponse()
+    {
+        $this->response->setStatusCode(404);
+        throw new NotFoundException();
     }
 }
