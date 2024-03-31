@@ -26,8 +26,8 @@ class Application
         $this->response = new Response();
         $this->session = new Session();
         $this->view = new View();
-        $this->router = new Router($this->request, $this->response);
         $this->db = new Database($config['db']);
+        $this->router = new Router($this->request, $this->response);
     }
 
     public function getController(): Controller {
@@ -42,11 +42,8 @@ class Application
     {
         try {
             echo $this->router->resolve();
-        } catch (\Throwable $e) {
-            $this->response->setStatusCode($e->getCode());
-            echo $this->view->renderView('_error', [
-                'exception' => $e
-            ]);
+        } catch (\Exception $e) {
+            die("Error: " . $e);
         }
     }
 }

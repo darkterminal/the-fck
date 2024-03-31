@@ -51,6 +51,16 @@ class Request
         return $this->params[$key];
     }
 
+    public function getQueries(): array
+    {
+        return $_GET;
+    }
+
+    public function getQuery($key): string
+    {
+        return $_GET[$key];
+    }
+
     public function getBody()
     {
         $body = [];

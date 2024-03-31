@@ -153,7 +153,7 @@ function base_url(string $path = ''): string
 
     // Append the provided path, if any
     if ($path !== '') {
-        $baseUrl .= '/' . ltrim($path, '/');
+        $baseUrl .= ltrim($path, '/');
     }
 
     return $baseUrl;
