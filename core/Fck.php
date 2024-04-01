@@ -13,6 +13,10 @@ final class Fck
     public function __construct(string $appDir)
     {
         $this->appDir = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $appDir);
+
+        $whoops = new \Whoops\Run;
+        $whoops->pushHandler(new \Whoops\Handler\PrettyPageHandler);
+        $whoops->register();
     }
 
     public function boot()
