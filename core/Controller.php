@@ -15,6 +15,21 @@ class Controller {
         return Application::$app->view->renderView($view, $params);
     }
 
+    public function renderComponent($view, $params = [])
+    {
+        return Application::$app->view->renderComponent($view, $params);
+    }
+
+    public function addComponent($view, $params = [])
+    {
+        return Application::$app->view->addComponent($view, $params);
+    }
+
+    public function addPage($view, $params = [])
+    {
+        return Application::$app->view->addPage($view, $params);
+    }
+
     public function setLayout($layout) {
         $this->layout = $layout;
     }
