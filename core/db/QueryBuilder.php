@@ -40,9 +40,161 @@ class QueryBuilder
 
     public function where(string $column, string $operator, mixed $value)
     {
-        $this->where = "WHERE $column $operator ?";
+        $this->where .= empty($this->where) ? "WHERE $column $operator ?" : " AND $column $operator ?";
         $this->params[] = $value;
         return $this;
+    }
+
+    public function andWhere(string $column, string $operator, mixed $value)
+    {
+        return $this->where($column, $operator, $value);
+    }
+
+    public function orWhere(string $column, string $operator, mixed $value)
+    {
+        $this->where .= empty($this->where) ? "WHERE $column $operator ?" : " OR $column $operator ?";
+        $this->params[] = $value;
+        return $this;
+    }
+
+    public function whereIsNull(string $column)
+    {
+        $this->where .= empty($this->where) ? "WHERE $column IS NULL" : " AND $column IS NULL";
+        return $this;
+    }
+
+    public function whereNot(string $column, mixed $value)
+    {
+        return $this->where($column, '<>', $value);
+    }
+
+    public function whereIn(string $column, array $values)
+    {
+        $placeholders = implode(', ', array_fill(0, count($values), '?'));
+        $this->where .= empty($this->where) ? "WHERE $column IN ($placeholders)" : " AND $column IN ($placeholders)";
+        $this->params = array_merge($this->params, $values);
+        return $this;
+    }
+
+    public function whereNotIn(string $column, array $values)
+    {
+        $placeholders = implode(', ', array_fill(0, count($values), '?'));
+        $this->where .= empty($this->where) ? "WHERE $column NOT IN ($placeholders)" : " AND $column NOT IN ($placeholders)";
+        $this->params = array_merge($this->params, $values);
+        return $this;
+    }
+
+    public function whereNotNull(string $column)
+    {
+        $this->where .= empty($this->where) ? "WHERE $column IS NOT NULL" : " AND $column IS NOT NULL";
+        return $this;
+    }
+
+    public function whereGroup(callable $callback)
+    {
+        $this->where .= empty($this->where) ? 'WHERE (' : ' AND (';
+        $callback($this);
+        $this->where .= ')';
+        return $this;
+    }
+
+    public function join(string $table, string $column1, string $operator, string $column2)
+    {
+        $this->where .= " JOIN $table ON $column1 $operator $column2";
+        return $this;
+    }
+
+    public function innerJoin(string $table, string $column1, string $operator, string $column2)
+    {
+        $this->where .= " INNER JOIN $table ON $column1 $operator $column2";
+        return $this;
+    }
+
+    public function leftJoin(string $table, string $column1, string $operator, string $column2)
+    {
+        $this->where .= " LEFT JOIN $table ON $column1 $operator $column2";
+        return $this;
+    }
+
+    public function rightJoin(string $table, string $column1, string $operator, string $column2)
+    {
+        $this->where .= " RIGHT JOIN $table ON $column1 $operator $column2";
+        return $this;
+    }
+
+    public function groupBy(string $column)
+    {
+        $this->where .= " GROUP BY $column";
+        return $this;
+    }
+
+    public function orderBy(string|array $columns, string $direction = 'asc')
+    {
+        if (is_array($columns)) {
+            $orderBy = [];
+            foreach ($columns as $column => $dir) {
+                $orderBy[] = "$column $dir";
+            }
+            $orderBy = implode(', ', $orderBy);
+        } else {
+            $orderBy = "$columns $direction";
+        }
+        $this->where .= " ORDER BY $orderBy";
+        return $this;
+    }
+
+    public function limit(int $limit, ?int $offset = null)
+    {
+        if ($offset !== null) {
+            $this->where .= " LIMIT $offset, $limit";
+        } else {
+            $this->where .= " LIMIT $limit";
+        }
+        return $this;
+    }
+
+    public function page(int $page, int $perPage)
+    {
+        $offset = ($page - 1) * $perPage;
+        return $this->limit($perPage, $offset);
+    }
+
+    public function count($field = null)
+    {
+        $field = $field ?? '*';
+        $this->select = "COUNT($field)";
+        return $this->get()->count ?? 0;
+    }
+
+    public function sum($field)
+    {
+        $this->select = "SUM($field)";
+        return $this->get()->sum ?? 0;
+    }
+
+    public function min($field)
+    {
+        $this->select = "MIN($field)";
+        return $this->get()->min ?? null;
+    }
+
+    public function max($field)
+    {
+        $this->select = "MAX($field)";
+        return $this->get()->max ?? null;
+    }
+
+    public function avg($field)
+    {
+        $this->select = "AVG($field)";
+        return $this->get()->avg ?? 0;
+    }
+
+    public function exists()
+    {
+        $this->select = "EXISTS(SELECT 1" . ($this->where ? " FROM $this->table $this->where" : "") . ") AS `exists`";
+        $result = $this->get();
+        return (bool)($result ? $result->exists : false);
     }
 
     public function insert(array $data): int
@@ -77,6 +229,16 @@ class QueryBuilder
         $statement->execute($this->params);
 
         return $statement->rowCount();
+    }
+
+    public function first(): ?object
+    {
+        return $this->get();
+    }
+
+    public function all(): array
+    {
+        return $this->getAll();
     }
 
     public function get(): ?object
