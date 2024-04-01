@@ -5,6 +5,12 @@ namespace Fckin\core;
 class Request
 {
     public $params = [];
+    public $headers = [];
+
+    public function __construct()
+    {
+        $this->headers = $this->getAllHeaders();
+    }
 
     public function getPath()
     {
@@ -88,5 +94,63 @@ class Request
         }
 
         return $body;
+    }
+
+    public function getAllHeaders()
+    {
+        $headers = [];
+        foreach ($_SERVER as $key => $value) {
+            if (substr($key, 0, 5) === 'HTTP_') {
+                $header = str_replace(' ', '-', ucwords(str_replace('_', ' ', strtolower(substr($key, 5)))));
+                $headers[$header] = $value;
+            }
+        }
+        return $headers;
+    }
+
+    public function getHeader(string $name)
+    {
+        $normalized_name = str_replace(' ', '-', ucwords(str_replace('-', ' ', strtolower($name))));
+        return $this->headers[$normalized_name] ?? null;
+    }
+
+    public function isHxBoosted(): bool
+    {
+        return isset($this->headers['HX-Boosted']);
+    }
+
+    public function getCurrentUrl(): ?string
+    {
+        return $this->getHeader('HX-Current-URL');
+    }
+
+    public function isHistoryRestoreRequest(): bool
+    {
+        return $this->getHeader('HX-History-Restore-Request') === 'true';
+    }
+
+    public function getPromptResponse(): ?string
+    {
+        return $this->getHeader('HX-Prompt');
+    }
+
+    public function isHxRequest(): bool
+    {
+        return $this->getHeader('HX-Request') === 'true';
+    }
+
+    public function getTargetElementId(): ?string
+    {
+        return $this->getHeader('HX-Target');
+    }
+
+    public function getTriggerName(): ?string
+    {
+        return $this->getHeader('HX-Trigger-Name');
+    }
+
+    public function getTriggerElementId(): ?string
+    {
+        return $this->getHeader('HX-Trigger');
     }
 }
