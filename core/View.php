@@ -36,4 +36,34 @@ class View
         include_once Application::$ROOT_DIR . "/views/$view.php";
         return ob_get_clean();
     }
+
+    public function renderComponent(string $view, array $params = [])
+    {
+        foreach ($params as $key => $val) {
+            $$key = $val;
+        }
+        ob_start();
+        include_once Application::$ROOT_DIR . "/views/$view.php";
+        return ob_get_clean();
+    }
+
+    public function addComponent(string $view, array $params = [])
+    {
+        foreach ($params as $key => $val) {
+            $$key = $val;
+        }
+        ob_start();
+        include_once Application::$ROOT_DIR . "/views/components/$view.php";
+        return ob_get_clean();
+    }
+
+    public function addPage(string $view, array $params = [])
+    {
+        foreach ($params as $key => $val) {
+            $$key = $val;
+        }
+        ob_start();
+        include_once Application::$ROOT_DIR . "/views/pages/$view.php";
+        return ob_get_clean();
+    }
 }
