@@ -2,6 +2,7 @@
 
 use Fckin\core\Application;
 use Fckin\core\FTAuth;
+use Fckin\core\Response;
 use Symfony\Component\VarDumper\VarDumper;
 
 function thefck(...$vars)
@@ -139,19 +140,14 @@ function config($configFile, $key)
 
 function base_url(string $path = ''): string
 {
-    // Get the protocol (HTTP or HTTPS)
     $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
 
-    // Get the host (domain) name
     $host = $_SERVER['HTTP_HOST'];
 
-    // Get the base path (without the script name)
     $basePath = dirname($_SERVER['SCRIPT_NAME']);
 
-    // Combine the components to create the base URL
     $baseUrl = "$protocol://$host$basePath";
 
-    // Append the provided path, if any
     if ($path !== '') {
         $baseUrl .= ltrim($path, '/');
     }
@@ -167,4 +163,139 @@ function getParams(): array
 function getParam(string $key): mixed
 {
     return Application::$app->request->getParam($key);
+}
+
+function loadJsonFile(string $path): array
+{
+    $dir = dirname(dirname(__DIR__));
+    $data = \json_decode(\file_get_contents("$dir/$path"), true);
+    return $data;
+}
+
+function isActiveLink(string $baseUrl): bool
+{
+    $currentURL = "http://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+    return $currentURL === $baseUrl;
+}
+
+function createBreadcrumbs(): string
+{
+    $currentURL = "http://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+    $path = parse_url($currentURL, PHP_URL_PATH);
+
+    $pathParts = explode('/', trim($path, '/'));
+
+    $breadcrumbs = array();
+
+    $breadcrumbs[] = '<li><a href="/">Home</a></li>';
+
+    $currentPath = '/';
+    $totalPaths = \count($pathParts);
+    $no = 1;
+    foreach ($pathParts as $part) {
+
+        $part = ucfirst($part);
+
+
+        $part = str_replace('-', ' ', $part);
+
+
+        $currentPath .= \strtolower($part) . '/';
+
+
+        $breadcrumbs[] = '<li><a href="' . ($totalPaths === $no ? '#' : \rtrim($currentPath, '/')) . '" ' . $totalPaths === $no ? 'class="disabled"' : '' . '>' . $part . '</a></li>';
+        $no++;
+    }
+
+    $breadcrumbsString = implode('', $breadcrumbs);
+
+    return '<div class="text-sm breadcrumbs"><ul>' . $breadcrumbsString . '</ul></div>';
+}
+
+function remove_keys(array|object $data, array $exclude): array|object
+{
+    $data = (array) $data;
+
+    foreach ($exclude as $key) {
+        unset($data[$key]);
+    }
+
+    foreach ($data as &$value) {
+        if (is_array($value) || is_object($value)) {
+            $value = self::remove_keys($value, $exclude);
+        }
+    }
+
+    return $data;
+}
+
+function buildHxAttributes($base_url, $queryString, $column, $activeColumn, $targetId, $search = '', $extraClasses = '')
+{
+    $hxAttributes = 'hx-get="' . base_url($base_url . '?' . $queryString . '&column=' . $column . '&search=' . $search) . '" ';
+    $hxAttributes .= 'hx-swap="outerHTML" ';
+    $hxAttributes .= 'hx-target="#' . $targetId . '" ';
+    $hxAttributes .= 'hx-indicator="#table-indicator" ';
+    $hxAttributes .= 'class="cursor-pointer hover:bg-base-300';
+    if ($activeColumn === $column) {
+        $hxAttributes .= ' bg-base-300 ';
+    }
+    $hxAttributes .= $extraClasses . '"';
+
+    return $hxAttributes;
+}
+
+function hxPagination($base_url, $queryString, $targetId)
+{
+    $hxAttributes = 'hx-get="' . base_url($base_url . '?' . $queryString) . '" ';
+    $hxAttributes .= 'hx-swap="outerHTML" ';
+    $hxAttributes .= 'hx-target="#' . $targetId . '" ';
+    $hxAttributes .= 'hx-indicator="#table-indicator" ';
+
+    return $hxAttributes;
+}
+
+function handleAjaxOrRedirect(Response $response, string $path, int $code)
+{
+    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+        $response->setStatusCode($code);
+    } else {
+        $response->redirect($path);
+    }
+    exit();
+}
+
+function isAjax()
+{
+    return isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+}
+
+function toObject($array)
+{
+    if (!is_array($array)) {
+        return $array;
+    }
+
+    $object = new \stdClass();
+
+    foreach ($array as $key => $value) {
+        $object->$key = self::toObject($value);
+    }
+
+    return $object;
+}
+
+function getValidationError(array|null $errors, string $key)
+{
+    if (!empty($errors) && array_key_exists($key, $errors)) {
+        $errorMessage = implode(', ', $errors[$key]);
+        return '<span class="text-sm text-red-500">' . $errorMessage . '</span>';
+    }
+
+    return null;
+}
+
+function collection(string $name)
+{
+    $className = "App\models\\" . $name;
+    return new $className();
 }
