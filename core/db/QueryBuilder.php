@@ -15,6 +15,8 @@ class QueryBuilder
 
     private $select = '*';
 
+    private $join = '';
+
     private $where = '';
 
     private $params = [];
@@ -101,25 +103,25 @@ class QueryBuilder
 
     public function join(string $table, string $column1, string $operator, string $column2)
     {
-        $this->where .= " JOIN $table ON $column1 $operator $column2";
+        $this->join .= " JOIN $table ON $column1 $operator $column2";
         return $this;
     }
 
     public function innerJoin(string $table, string $column1, string $operator, string $column2)
     {
-        $this->where .= " INNER JOIN $table ON $column1 $operator $column2";
+        $this->join .= " INNER JOIN $table ON $column1 $operator $column2";
         return $this;
     }
 
     public function leftJoin(string $table, string $column1, string $operator, string $column2)
     {
-        $this->where .= " LEFT JOIN $table ON $column1 $operator $column2";
+        $this->join .= " LEFT JOIN $table ON $column1 $operator $column2";
         return $this;
     }
 
     public function rightJoin(string $table, string $column1, string $operator, string $column2)
     {
-        $this->where .= " RIGHT JOIN $table ON $column1 $operator $column2";
+        $this->join .= " RIGHT JOIN $table ON $column1 $operator $column2";
         return $this;
     }
 
@@ -246,8 +248,9 @@ class QueryBuilder
             }, array_keys($data)));
 
             $sql = "UPDATE $this->table SET $setClause $this->where";
+            $params = array_merge(array_values($data), $this->params);
             $statement = $this->pdo->prepare($sql);
-            $statement->execute(array_merge(array_values($data), $this->params));
+            $statement->execute($params);
 
             return $statement->rowCount();
         } catch (DatabaseException $e) {
@@ -281,7 +284,7 @@ class QueryBuilder
     public function get(): ?object
     {
         try {
-            $sql = "SELECT $this->select FROM $this->table $this->where";
+            $sql = "SELECT $this->select FROM $this->table $this->join $this->where";
             $statement = $this->pdo->prepare($sql);
             $statement->execute($this->params);
 
@@ -296,7 +299,7 @@ class QueryBuilder
     public function getAll(): array
     {
         try {
-            $sql = "SELECT $this->select FROM $this->table $this->where";
+            $sql = "SELECT $this->select FROM $this->table $this->join $this->where";
             $statement = $this->pdo->prepare($sql);
             $statement->execute($this->params);
 
