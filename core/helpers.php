@@ -61,7 +61,7 @@ function toast($key)
 {
     if (Application::$app->session->getFlashMessage($key)) :
         return '<div role="alert" class="alert alert-' . $key . ' w-[30rem] mx-auto">
-            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 stroke-current shrink-0" fill="none" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span>' . Application::$app->session->getFlashMessage($key) . '</span>
@@ -222,7 +222,7 @@ function remove_keys(array|object $data, array $exclude): array|object
 
     foreach ($data as &$value) {
         if (is_array($value) || is_object($value)) {
-            $value = self::remove_keys($value, $exclude);
+            $value = remove_keys($value, $exclude);
         }
     }
 
@@ -278,7 +278,7 @@ function toObject($array)
     $object = new \stdClass();
 
     foreach ($array as $key => $value) {
-        $object->$key = self::toObject($value);
+        $object->$key = toObject($value);
     }
 
     return $object;
@@ -298,4 +298,9 @@ function collection(string $name)
 {
     $className = "App\models\\" . $name;
     return new $className();
+}
+
+function whoops_add_stack_frame($callback)
+{
+    $callback();
 }

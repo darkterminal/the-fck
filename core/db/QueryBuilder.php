@@ -2,9 +2,10 @@
 
 namespace Fckin\core\db;
 
+use Exception;
 use Fckin\core\Application;
+use Fckin\core\exceptions\DatabaseException;
 use PDO;
-use PDOException;
 
 class QueryBuilder
 {
@@ -161,74 +162,110 @@ class QueryBuilder
 
     public function count($field = null)
     {
-        $field = $field ?? '*';
-        $this->select = "COUNT($field)";
-        return $this->get()->count ?? 0;
+        try {
+            $field = $field ?? '*';
+            $this->select = "COUNT($field)";
+            return $this->get()->count ?? 0;
+        } catch (DatabaseException $e) {
+            throw new Exception("Database Exception: " . $e->getMessage() . " (Query: " . $e->getQuery() . ")");
+        }
     }
 
     public function sum($field)
     {
-        $this->select = "SUM($field)";
-        return $this->get()->sum ?? 0;
+        try {
+            $this->select = "SUM($field)";
+            return $this->get()->sum ?? 0;
+        } catch (DatabaseException $e) {
+            throw new Exception("Database Exception: " . $e->getMessage() . " (Query: " . $e->getQuery() . ")");
+        }
     }
 
     public function min($field)
     {
-        $this->select = "MIN($field)";
-        return $this->get()->min ?? null;
+        try {
+            $this->select = "MIN($field)";
+            return $this->get()->min ?? null;
+        } catch (DatabaseException $e) {
+            throw new Exception("Database Exception: " . $e->getMessage() . " (Query: " . $e->getQuery() . ")");
+        }
     }
 
     public function max($field)
     {
-        $this->select = "MAX($field)";
-        return $this->get()->max ?? null;
+        try {
+            $this->select = "MAX($field)";
+            return $this->get()->max ?? null;
+        } catch (DatabaseException $e) {
+            throw new Exception("Database Exception: " . $e->getMessage() . " (Query: " . $e->getQuery() . ")");
+        }
     }
 
     public function avg($field)
     {
-        $this->select = "AVG($field)";
-        return $this->get()->avg ?? 0;
+        try {
+            $this->select = "AVG($field)";
+            return $this->get()->avg ?? 0;
+        } catch (DatabaseException $e) {
+            throw new Exception("Database Exception: " . $e->getMessage() . " (Query: " . $e->getQuery() . ")");
+        }
     }
 
     public function exists()
     {
-        $this->select = "EXISTS(SELECT 1" . ($this->where ? " FROM $this->table $this->where" : "") . ") AS `exists`";
-        $result = $this->get();
-        return (bool)($result ? $result->exists : false);
+        try {
+            $this->select = "EXISTS(SELECT 1" . ($this->where ? " FROM $this->table $this->where" : "") . ") AS `exists`";
+            $result = $this->get();
+            return (bool)($result ? $result->exists : false);
+        } catch (DatabaseException $e) {
+            throw new Exception("Database Exception: " . $e->getMessage() . " (Query: " . $e->getQuery() . ")");
+        }
     }
 
     public function insert(array $data): int
     {
-        $columns = implode(', ', array_keys($data));
-        $values = implode(', ', array_fill(0, count($data), '?'));
+        try {
+            $columns = implode(', ', array_keys($data));
+            $values = implode(', ', array_fill(0, count($data), '?'));
 
-        $sql = "INSERT INTO $this->table ($columns) VALUES ($values)";
-        $statement = $this->pdo->prepare($sql);
-        $statement->execute(array_values($data));
+            $sql = "INSERT INTO $this->table ($columns) VALUES ($values)";
+            $statement = $this->pdo->prepare($sql);
+            $statement->execute(array_values($data));
 
-        return $this->pdo->lastInsertId();
+            return $this->pdo->lastInsertId();
+        } catch (DatabaseException $e) {
+            throw new Exception("Database Exception: " . $e->getMessage() . " (Query: " . $e->getQuery() . ")");
+        }
     }
 
     public function update(array $data): int
     {
-        $setClause = implode(', ', array_map(function ($key) {
-            return "$key = ?";
-        }, array_keys($data)));
+        try {
+            $setClause = implode(', ', array_map(function ($key) {
+                return "$key = ?";
+            }, array_keys($data)));
 
-        $sql = "UPDATE $this->table SET $setClause $this->where";
-        $statement = $this->pdo->prepare($sql);
-        $statement->execute(array_merge(array_values($data), $this->params));
+            $sql = "UPDATE $this->table SET $setClause $this->where";
+            $statement = $this->pdo->prepare($sql);
+            $statement->execute(array_merge(array_values($data), $this->params));
 
-        return $statement->rowCount();
+            return $statement->rowCount();
+        } catch (DatabaseException $e) {
+            throw new Exception("Database Exception: " . $e->getMessage() . " (Query: " . $e->getQuery() . ")");
+        }
     }
 
     public function delete(): int
     {
-        $sql = "DELETE FROM $this->table $this->where";
-        $statement = $this->pdo->prepare($sql);
-        $statement->execute($this->params);
+        try {
+            $sql = "DELETE FROM $this->table $this->where";
+            $statement = $this->pdo->prepare($sql);
+            $statement->execute($this->params);
 
-        return $statement->rowCount();
+            return $statement->rowCount();
+        } catch (DatabaseException $e) {
+            throw new Exception("Database Exception: " . $e->getMessage() . " (Query: " . $e->getQuery() . ")");
+        }
     }
 
     public function first(): ?object
@@ -243,22 +280,30 @@ class QueryBuilder
 
     public function get(): ?object
     {
-        $sql = "SELECT $this->select FROM $this->table $this->where";
-        $statement = $this->pdo->prepare($sql);
-        $statement->execute($this->params);
+        try {
+            $sql = "SELECT $this->select FROM $this->table $this->where";
+            $statement = $this->pdo->prepare($sql);
+            $statement->execute($this->params);
 
-        $result = $statement->fetch(PDO::FETCH_OBJ);
+            $result = $statement->fetch(PDO::FETCH_OBJ);
 
-        return $result !== false ? $result : null;
+            return $result !== false ? $result : null;
+        } catch (DatabaseException $e) {
+            throw new Exception("Database Exception: " . $e->getMessage() . " (Query: " . $e->getQuery() . ")");
+        }
     }
 
     public function getAll(): array
     {
-        $sql = "SELECT $this->select FROM $this->table $this->where";
-        $statement = $this->pdo->prepare($sql);
-        $statement->execute($this->params);
+        try {
+            $sql = "SELECT $this->select FROM $this->table $this->where";
+            $statement = $this->pdo->prepare($sql);
+            $statement->execute($this->params);
 
-        return $statement->fetchAll(PDO::FETCH_OBJ);
+            return $statement->fetchAll(PDO::FETCH_OBJ);
+        } catch (DatabaseException $e) {
+            throw new Exception("Database Exception: " . $e->getMessage() . " (Query: " . $e->getQuery() . ")");
+        }
     }
 
     public function query(string $sql, array $params = []): mixed
@@ -268,8 +313,8 @@ class QueryBuilder
             $statement->execute($params);
 
             return $statement;
-        } catch (PDOException $e) {
-            die('Query failed: ' . $e->getMessage());
+        } catch (DatabaseException $e) {
+            throw new Exception("Database Exception: " . $e->getMessage() . " (Query: " . $e->getQuery() . ")");
         }
     }
 
@@ -284,8 +329,8 @@ class QueryBuilder
             }
             $stmt->execute();
             return $stmt;
-        } catch (PDOException $e) {
-            die('Query failed: ' . $e->getMessage());
+        } catch (DatabaseException $e) {
+            throw new Exception("Database Exception: " . $e->getMessage() . " (Query: " . $e->getQuery() . ")");
         }
     }
 
