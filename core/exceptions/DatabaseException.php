@@ -22,6 +22,8 @@ class DatabaseException extends Exception
 
     public function __toString()
     {
-        return __CLASS__ . ": [{$this->code}]: {$this->message} (Query: {$this->query})\n";
+        $message = __CLASS__ . ": [{$this->code}]: {$this->message} (Query: {$this->query})\n";
+        logger(message: $message);
+        return $message;
     }
 }

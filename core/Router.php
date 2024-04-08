@@ -162,14 +162,18 @@ class Router
         $composerFile = Application::$ROOT_DIR . DIRECTORY_SEPARATOR . 'composer.json';
 
         if (!file_exists($composerFile)) {
-            throw new Exception("You don't have composer.json!", 1);
+            $message = "You don't have composer.json!";
+            \logger(type: 'critical', message: $message);
+            throw new Exception($message, 1);
         }
 
         $composer = json_decode(file_get_contents($composerFile), true);
         $controllerClass = '\\' . key($composer['autoload']['psr-4']) . 'controllers\\' . $controllerName;
 
         if (!class_exists($controllerClass)) {
-            throw new Exception("Controller class $controllerClass not found", 1);
+            $message = "Controller class $controllerClass not found";
+            \logger(type: 'critical', message: $message);
+            throw new Exception($message, 1);
         }
 
         return new $controllerClass();

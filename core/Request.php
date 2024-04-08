@@ -83,7 +83,6 @@ class Request
             }
         }
 
-        // Handle JSON payload for PUT and DELETE requests
         if (in_array($this->method(), ['put', 'delete'])) {
             $input = file_get_contents('php://input');
             $jsonBody = json_decode($input, true);

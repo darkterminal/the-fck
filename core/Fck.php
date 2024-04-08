@@ -21,7 +21,9 @@ final class Fck
         $routerPath = $this->appDir . '/routes/web.php';
 
         if (!file_exists($configPath) || !file_exists($routerPath)) {
-            throw new Exception("Error in the fck configuration", 1);
+            $message = "Error in the fck configuration";
+            \logger(type: 'critical', message: $message);
+            throw new Exception($message, 1);
         }
 
         $dotenv = Dotenv::createImmutable($this->appDir);

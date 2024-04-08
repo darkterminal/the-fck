@@ -55,11 +55,11 @@ abstract class Model extends QueryBuilder
                 }
 
                 if ($ruleName === self::RULE_MIN && strlen($value) < $rule['min']) {
-                    $this->addErrorForRule($attribute, self::RULE_MIN, $rule);  
+                    $this->addErrorForRule($attribute, self::RULE_MIN, $rule);
                 }
 
                 if ($ruleName === self::RULE_MAX && strlen($value) > $rule['max']) {
-                    $this->addErrorForRule($attribute, self::RULE_MAX, $rule);  
+                    $this->addErrorForRule($attribute, self::RULE_MAX, $rule);
                 }
 
                 if ($ruleName === self::RULE_MATCH && $value != $this->{$rule['match']}) {
@@ -88,6 +88,7 @@ abstract class Model extends QueryBuilder
         foreach ($params as $key => $value) {
             $message = str_replace("{{$key}}", $value, $message);
         }
+        \logger(message: $message);
         $this->errors[$attribute][] = $message;
         return false;
     }

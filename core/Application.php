@@ -3,10 +3,15 @@
 namespace Fckin\core;
 
 use Fckin\core\db\Database;
+use Monolog\Handler\FirePHPHandler;
+use Monolog\Handler\StreamHandler;
+use Monolog\Level;
+use Monolog\Logger;
 
 class Application
 {
     public static string $ROOT_DIR;
+    public static Logger $log;
     public static Application $app;
 
     public string $layout = 'default';
@@ -22,6 +27,7 @@ class Application
     {
         self::$app = $this;
         self::$ROOT_DIR = $rootPath;
+        self::$log = new Logger('fck_logger');
         $this->request = new Request();
         $this->response = new Response();
         $this->session = new Session();
@@ -42,6 +48,9 @@ class Application
 
     public function run()
     {
+        self::$log->pushHandler(new StreamHandler(self::$ROOT_DIR . '/runtime/log/app.log', Level::Debug));
+        self::$log->pushHandler(new FirePHPHandler());
+
         $run = new \Whoops\Run;
         $handler = new \Whoops\Handler\PrettyPageHandler();
         $handler->setApplicationPaths([self::$ROOT_DIR]);

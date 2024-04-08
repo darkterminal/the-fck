@@ -140,7 +140,7 @@ function config($configFile, $key)
 
 function base_url(string $path = ''): string
 {
-    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' || isset($_SERVER['HTTP_X_FORWARDED_PROTO']) ? 'https' : 'http';
 
     $host = $_SERVER['HTTP_HOST'];
 
@@ -303,4 +303,37 @@ function collection(string $name)
 function whoops_add_stack_frame($callback)
 {
     $callback();
+}
+
+function logger(string $type = 'info', string $message, array $data = []) : void {
+    switch (strtolower($type)) {
+        case 'info':
+            Application::$log->info($message, $data);
+            break;
+        case 'debug':
+            Application::$log->debug($message, $data);
+            break;
+        case 'error':
+            Application::$log->error($message, $data);
+            break;
+        case 'warning':
+            Application::$log->warning($message, $data);
+            break;
+        case 'notice':
+            Application::$log->notice($message, $data);
+            break;
+        case 'critical':
+            Application::$log->critical($message, $data);
+            break;
+        case 'alert':
+            Application::$log->alert($message, $data);
+            break;
+        case 'emergency':
+            Application::$log->emergency($message, $data);
+            break;
+
+        default:
+            Application::$log->info($message, $data);
+            break;
+    }
 }
