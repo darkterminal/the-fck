@@ -305,7 +305,8 @@ function whoops_add_stack_frame($callback)
     $callback();
 }
 
-function logger(string $type = 'info', string $message, array $data = []) : void {
+function logger(string $type = 'info', string $message, array $data = []): void
+{
     switch (strtolower($type)) {
         case 'info':
             Application::$log->info($message, $data);
