@@ -5,7 +5,9 @@ namespace Fckin\core\db;
 use Exception;
 use Fckin\core\Application;
 use Fckin\core\exceptions\DatabaseException;
+use InvalidArgumentException;
 use PDO;
+use PDOStatement;
 
 class QueryBuilder
 {
@@ -309,7 +311,7 @@ class QueryBuilder
         }
     }
 
-    public function query(string $sql, array $params = []): mixed
+    public function query(string $sql, array $params = []): PDOStatement
     {
         try {
             $statement = $this->pdo->prepare($sql);
@@ -321,7 +323,24 @@ class QueryBuilder
         }
     }
 
-    public function executeQuery($sql_filename, $params = [])
+    public function execQueryTable($sql, $validColumns, $search, $column, $order_by, $offset, $limit): PDOStatement
+    {
+        $dir_statements = $this->sql_statement_path . \str_replace('.', '/', $sql);
+        $statement = \file_get_contents($dir_statements . '.sql');
+
+        $column = $this->validateColumn($column, $validColumns);
+        $order_by = $this->validateOrder($order_by);
+
+        $statement = str_replace(':column', $column, $statement);
+        $statement = str_replace(':order_by', $order_by, $statement);
+        $statement = str_replace(':search', "%$search%", $statement);
+        $statement = str_replace(':offset', $offset, $statement);
+        $statement = str_replace(':limit', $limit, $statement);
+
+        return $this->query($statement);
+    }
+
+    public function executeQuery($sql_filename, $params = []): PDOStatement
     {
         try {
             $dir_statements = $this->sql_statement_path . \str_replace('.', '/', $sql_filename);
@@ -335,6 +354,23 @@ class QueryBuilder
         } catch (DatabaseException $e) {
             throw new Exception("Database Exception: " . $e->getMessage() . " (Query: " . $e->getQuery() . ")");
         }
+    }
+
+    private function validateColumn($column, $validColumns)
+    {
+        if (!in_array($column, $validColumns)) {
+            throw new InvalidArgumentException("Invalid column name.");
+        }
+        return $column;
+    }
+
+    private function validateOrder($order)
+    {
+        $order = strtoupper($order);
+        if ($order !== 'ASC' && $order !== 'DESC') {
+            throw new InvalidArgumentException("Invalid order direction.");
+        }
+        return $order;
     }
 
     private function getParamType($value)
